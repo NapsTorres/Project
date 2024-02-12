@@ -39,7 +39,7 @@ app.use('/api', RegistrationController);
 app.use('/api', EventLeaderboardController);
 app.use('/api', RankingsController);
 
-app.get('/test', (req, res) => {
+app.get('/', (req, res) => {
     res.json({ message: 'Restful API Backend Using ExpressJS' });
 });
 

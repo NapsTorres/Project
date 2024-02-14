@@ -11,12 +11,12 @@ const EventController = express.Router();
 // Event registration start
 EventController.post('/event_reg', authenticateToken, async (req, res) => {
     try {
-        const { EventName, EventDate, MaxStudentsPerDept, CategoryID } = req.body;
+        const { EventName, EventDate, Location, MaxStudentsPerDept, CategoryID } = req.body;
         const UserID = req.user.UserID;
         const formattedEventDate = moment.utc(EventDate).format('YYYY-MM-DD');
 
-        const insertEventsQuery = 'INSERT INTO Events (EventName, EventDate, MaxStudentsPerDept, CategoryID, UserID) VALUES (?, ?, ?, ?, ?)';
-        await db.promise().execute(insertEventsQuery, [EventName, formattedEventDate, MaxStudentsPerDept, CategoryID, UserID]);
+        const insertEventsQuery = 'INSERT INTO Events (EventName, EventDate, Location, MaxStudentsPerDept, CategoryID, UserID) VALUES (?, ?, ?, ?, ?, ?)';
+        await db.promise().execute(insertEventsQuery, [EventName, formattedEventDate, Location, MaxStudentsPerDept, CategoryID, UserID]);
 
         res.status(201).json({ message: 'Event registered successfully' });
     } catch (error) {
@@ -24,12 +24,13 @@ EventController.post('/event_reg', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 // Event registration end
 
 // show Event start
 EventController.get('/events', (req, res) => {
     try {
-        db.query('SELECT EventID, EventName, DATE_FORMAT(EventDate, "%Y-%m-%d") AS EventDate, MaxStudentsPerDept, CategoryID, UserID FROM Events', (err, result) => {
+        db.query('SELECT EventID, EventName, DATE_FORMAT(EventDate, "%Y-%m-%d") AS EventDate, Location, MaxStudentsPerDept, CategoryID, UserID FROM Events', (err, result) => {
             if (err) {
                 console.error('Error fetching Event', err);
                 res.status(500).json({ message: 'Internal Server Error' });
@@ -42,6 +43,7 @@ EventController.get('/events', (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 // show Event end
 
 
@@ -54,7 +56,7 @@ EventController.get('/event/:id', (req, res) => {
     }
 
     try {
-        db.query('SELECT EventName, DATE_FORMAT(EventDate, "%Y-%m-%d") AS EventDate, MaxStudentsPerDept, CategoryID, UserID FROM Events WHERE EventID = ?', EventID, (err, result) => {
+        db.query('SELECT EventName, DATE_FORMAT(EventDate, "%Y-%m-%d") AS EventDate, Location, MaxStudentsPerDept, CategoryID, UserID FROM Events WHERE EventID = ?', EventID, (err, result) => {
             if (err) {
                 console.error('Error fetching Event', err);
                 res.status(500).json({ message: 'Internal Server Error' });
@@ -67,20 +69,21 @@ EventController.get('/event/:id', (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 // show Event by id end
 
 
 // update event start
 EventController.put('/event/:id', async (req, res) => {
     const EventID = req.params.id;
-    const { EventName, EventDate, MaxStudentsPerDept, CategoryID} = req.body;
+    const { EventName, EventDate, Location, MaxStudentsPerDept, CategoryID} = req.body;
 
-    if (!EventID || !EventName || !EventDate || !MaxStudentsPerDept || !CategoryID) {
-        return res.status(400).send({ error: true, message: 'Please provide EventName, EventDate, EventTime, MaxStudentsPerDept, CategoryID' });
+    if (!EventID || !EventName || !EventDate || !Location || !MaxStudentsPerDept || !CategoryID ) {
+        return res.status(400).send({ error: true, message: 'Please provide EventName, EventDate, Location, MaxStudentsPerDept, CategoryID' });
     }
 
     try {
-        db.query('UPDATE Events SET EventName = ?, EventDate = ?, MaxStudentsPerDept = ?, CategoryID = ?  WHERE EventID = ?', [EventName, EventDate, MaxStudentsPerDept, CategoryID, EventID], (err, result) => {
+        db.query('UPDATE Events SET EventName = ?, EventDate = ?, Location = ?, MaxStudentsPerDept = ?, CategoryID = ? WHERE EventID = ?', [EventName, EventDate, Location, MaxStudentsPerDept, CategoryID, EventID], (err, result) => {
             if (err) {
                 console.error('Error updating Event', err);
                 res.status(500).json({ message: 'Internal Server Error' });
@@ -93,6 +96,7 @@ EventController.put('/event/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 // update Event end
 
 // delete Event start

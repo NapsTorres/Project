@@ -8,7 +8,7 @@ const { authenticateToken } = require('../auth');
 
 const RoleController = express.Router();
 // role registration start
-RoleController.post('/role_reg', async (req, res) => {
+RoleController.post('/role_reg', authenticateToken, async  (req, res) => {
     try {
         const { RoleCode, RoleName } = req.body;
 
@@ -24,7 +24,7 @@ RoleController.post('/role_reg', async (req, res) => {
 // role registration end
 
 // show roles start
-RoleController.get('/roles', (req, res) => {
+RoleController.get('/roles', authenticateToken, async (req, res) => {
     try {
         db.query('SELECT RoleID, RoleCode, RoleName FROM Roles', (err, result) => {
             if (err) {
@@ -42,7 +42,7 @@ RoleController.get('/roles', (req, res) => {
 // show roles end
 
 // show role by id start
-RoleController.get('/role/:id', (req, res) => {
+RoleController.get('/role/:id', authenticateToken, async (req, res) => {
     const RoleId = req.params.id;
 
     if (!RoleId) {
@@ -66,7 +66,7 @@ RoleController.get('/role/:id', (req, res) => {
 // show role by id end
 
 // update role start
-RoleController.put('/role/:id', async (req, res) => {
+RoleController.put('/role/:id', authenticateToken, async  (req, res) => {
     const RoleId = req.params.id;
     const { RoleCode, RoleName } = req.body;
 
@@ -91,7 +91,7 @@ RoleController.put('/role/:id', async (req, res) => {
 // update role end
 
 // delete role start
-RoleController.delete('/role/:id', (req, res) => {
+RoleController.delete('/role/:id', authenticateToken, async (req, res) => {
     const RoleId = req.params.id;
 
     if (!RoleId) {

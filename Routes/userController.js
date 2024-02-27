@@ -9,7 +9,7 @@ const { authenticateToken } = require('../auth');
 const userController = express.Router();
 
 // register user start
-userController.post('/register', async (req, res) => {
+userController.post('/register', authenticateToken, async  (req, res) => {
     try {
         const { Name, Username, Password, RoleID } = req.body;
         const hashedPassword = await bcrypt.hash(Password, 10);
@@ -56,7 +56,7 @@ userController.post('/login', async (req, res) => {
 
 
 // show users start
-userController.get('/users', (req, res) => {
+userController.get('/users', authenticateToken, async (req, res) => {
     try {
         db.query('SELECT RoleID, UserID, Name, Username FROM Users', (err, result) => {
             if (err) {
@@ -74,7 +74,7 @@ userController.get('/users', (req, res) => {
 // show users end
 
 // show user by id start
-userController.get('/user/:id', (req, res) => {
+userController.get('/user/:id', authenticateToken, async (req, res) => {
     const UserId = req.params.id;
 
     if (!UserId) {
@@ -98,7 +98,7 @@ userController.get('/user/:id', (req, res) => {
 // show user by id end
 
 // update user by id start
-userController.put('/user/:id', async (req, res) => {
+userController.put('/user/:id', authenticateToken, async  (req, res) => {
     const UserID = req.params.id;
     const { Name, Username, Password, RoleID } = req.body;
     const hashedPassword = await bcrypt.hash(Password, 10);
@@ -124,7 +124,7 @@ userController.put('/user/:id', async (req, res) => {
 // update user by id end
 
 // delete user by id start
-userController.delete('/user/:id', (req, res) => {
+userController.delete('/user/:id', authenticateToken, async (req, res) => {
     const UserId = req.params.id;
 
     if (!UserId) {

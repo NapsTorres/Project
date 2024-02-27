@@ -8,7 +8,7 @@ const { authenticateToken } = require('../auth');
 
 const EventLeaderboardController = express.Router();
 /// Get all event leaderboards
-EventLeaderboardController.get('/Eventleaderboards', async (req, res) => {
+EventLeaderboardController.get('/Eventleaderboards', authenticateToken, async  (req, res) => {
     try {
         // Query to fetch all event leaderboards with department codes
         const query = `
@@ -27,7 +27,7 @@ EventLeaderboardController.get('/Eventleaderboards', async (req, res) => {
 });
 
 // Get event leaderboard by event ID
-EventLeaderboardController.get('/Eventleaderboard/:eventId', async (req, res) => {
+EventLeaderboardController.get('/Eventleaderboard/:eventId', authenticateToken, async  (req, res) => {
     try {
         const eventId = req.params.eventId;
 

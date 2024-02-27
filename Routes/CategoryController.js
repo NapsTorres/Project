@@ -9,7 +9,7 @@ const { authenticateToken } = require('../auth');
 const CategoryController = express.Router();
 
 // Category registration start
-CategoryController.post('/category_reg', async (req, res) => {
+CategoryController.post('/category_reg', authenticateToken, async  (req, res) => {
     try {
         const { CategoryName, UserID } = req.body;
 

@@ -167,7 +167,7 @@ async function updateWinnerDepartment(matchupId) {
 }
 
 
-GameController.post('/create_game', async (req, res) => {
+GameController.post('/create_game', authenticateToken, async  (req, res) => {
     try {
         const { MatchupID, GameNumber, GameDate, StartTime, EndTime, Status } = req.body;
 
@@ -199,7 +199,7 @@ GameController.post('/create_game', async (req, res) => {
     }
 });
 
-GameController.get('/games', async (req, res) => {
+GameController.get('/games', authenticateToken, async  (req, res) => {
     try {
         const [games] = await db.promise().query('SELECT * FROM Games');
 
@@ -220,7 +220,7 @@ GameController.get('/games', async (req, res) => {
     }
 });
 
-GameController.get('/game/:id', async (req, res) => {
+GameController.get('/game/:id', authenticateToken, async  (req, res) => {
     try {
         const gameId = req.params.id;
         const [game] = await db.promise().query('SELECT * FROM Games WHERE GameID = ?', [gameId]);
@@ -245,7 +245,7 @@ GameController.get('/game/:id', async (req, res) => {
     }
 });
 
-GameController.get('/games/event/:eventId', async (req, res) => {
+GameController.get('/games/event/:eventId', authenticateToken, async  (req, res) => {
     try {
         const eventId = req.params.eventId;
         const [games] = await db.promise().query('SELECT * FROM Games WHERE MatchupID IN (SELECT MatchupID FROM Matchups WHERE EventID = ?)', [eventId]);
@@ -267,7 +267,7 @@ GameController.get('/games/event/:eventId', async (req, res) => {
     }
 });
 
-GameController.get('/games/matchup/:matchupId', async (req, res) => {
+GameController.get('/games/matchup/:matchupId', authenticateToken, async  (req, res) => {
     try {
         const matchupId = req.params.matchupId;
         const [games] = await db.promise().query('SELECT * FROM Games WHERE MatchupID = ?', [matchupId]);
@@ -290,7 +290,7 @@ GameController.get('/games/matchup/:matchupId', async (req, res) => {
 });
 
 // Route to update game details
-GameController.put('/game/:id', async (req, res) => {
+GameController.put('/game/:id', authenticateToken, async  (req, res) => {
     try {
         const gameId = req.params.id;
         const { Status, Department1Score, Department2Score, GameDate, StartTime, EndTime } = req.body;

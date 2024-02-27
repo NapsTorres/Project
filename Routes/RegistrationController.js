@@ -7,7 +7,7 @@ const { authenticateToken } = require('../auth');
 const RegistrationController = express.Router();
 
 // Create registration
-RegistrationController.post('/registration', async (req, res) => {
+RegistrationController.post('/registration', authenticateToken, async  (req, res) => {
     try {
         const { EventID, StudentID, Name, GenderID, DepartmentID, MedicalCertificate } = req.body;
         const insertRegistrationQuery = 'INSERT INTO Registrations (EventID, StudentID, Name, GenderID, DepartmentID, MedicalCertificate) VALUES (?, ?, ?, ?, ?, ?)';
@@ -20,7 +20,7 @@ RegistrationController.post('/registration', async (req, res) => {
 });
 
 // Get all registrations with gender and department codes
-RegistrationController.get('/registrations', async (req, res) => {
+RegistrationController.get('/registrations', authenticateToken, async  (req, res) => {
     try {
         const query = `
             SELECT 
@@ -44,7 +44,7 @@ RegistrationController.get('/registrations', async (req, res) => {
 });
 
 // Get registration by ID with gender and department codes
-RegistrationController.get('/registration/:id', async (req, res) => {
+RegistrationController.get('/registration/:id', authenticateToken, async  (req, res) => {
     const registrationId = req.params.id;
     try {
         const query = `
@@ -75,7 +75,7 @@ RegistrationController.get('/registration/:id', async (req, res) => {
 });
 
 // Get registrations by Event ID with gender and department codes
-RegistrationController.get('/registration/event/:eventId', async (req, res) => {
+RegistrationController.get('/registration/event/:eventId', authenticateToken, async  (req, res) => {
     const eventId = req.params.eventId;
     try {
         const query = `
@@ -105,7 +105,8 @@ RegistrationController.get('/registration/event/:eventId', async (req, res) => {
     }
 });
 
-RegistrationController.get('/registration/department/:departmentId', async (req, res) => {
+// get registration by dept
+RegistrationController.get('/registration/department/:departmentId', authenticateToken, async  (req, res) => {
     const departmentId = req.params.departmentId;
     try {
         const query = `
@@ -136,7 +137,7 @@ RegistrationController.get('/registration/department/:departmentId', async (req,
 });
 
 // Update registration
-RegistrationController.put('/registration/:id', async (req, res) => {
+RegistrationController.put('/registration/:id', authenticateToken, async  (req, res) => {
     const registrationId = req.params.id;
     try {
         const { EventID, StudentID, Name, GenderID, DepartmentID, MedicalCertificate } = req.body;
@@ -162,7 +163,7 @@ RegistrationController.put('/registration/:id', async (req, res) => {
 
 
 // Delete registration
-RegistrationController.delete('/registrations/:id', async (req, res) => {
+RegistrationController.delete('/registrations/:id', authenticateToken, async  (req, res) => {
     const registrationId = req.params.id;
     try {
         await db.promise().execute('DELETE FROM Registrations WHERE RegistrationID = ?', [registrationId]);

@@ -8,7 +8,7 @@ const { authenticateToken } = require('../auth');
 const DeptController = express.Router();
 
 // Dept registration start
-DeptController.post('/dept_reg', async (req, res) => {
+DeptController.post('/dept_reg', authenticateToken, async  (req, res) => {
     try {
         const departments = req.body.departments; // Extracting departments array from the request body
 
@@ -30,7 +30,7 @@ DeptController.post('/dept_reg', async (req, res) => {
 
 
 // show Dept start
-DeptController.get('/depts', (req, res) => {
+DeptController.get('/depts', authenticateToken, async (req, res) => {
     try {
         db.query('SELECT DepartmentID, DepartmentCode, DepartmentName FROM Departments', (err, result) => {
             if (err) {
@@ -48,7 +48,7 @@ DeptController.get('/depts', (req, res) => {
 // show dept end
 
 // show dept by id start
-DeptController.get('/dept/:id', (req, res) => {
+DeptController.get('/dept/:id', authenticateToken, async (req, res) => {
     const DepartmentID = req.params.id;
 
     if (!DepartmentID) {
@@ -72,7 +72,7 @@ DeptController.get('/dept/:id', (req, res) => {
 // show dept by id end
 
 // update dept start
-DeptController.put('/dept/:id', async (req, res) => {
+DeptController.put('/dept/:id', authenticateToken, async  (req, res) => {
     const DepartmentID = req.params.id;
     const { DepartmentCode, DepartmentName, UserID } = req.body;
 
@@ -97,7 +97,7 @@ DeptController.put('/dept/:id', async (req, res) => {
 // update dept end
 
 // delete dept start
-DeptController.delete('/dept/:id', (req, res) => {
+DeptController.delete('/dept/:id', authenticateToken, async (req, res) => {
     const DepartmentID = req.params.id;
 
     if (!DepartmentID) {

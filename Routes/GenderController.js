@@ -9,7 +9,7 @@ const { authenticateToken } = require('../auth');
 const GenderController = express.Router();
 
 // Gender registration start
-GenderController.post('/gen_reg', async (req, res) => {
+GenderController.post('/gen_reg', authenticateToken, async  (req, res) => {
     try {
         const { GenderCode, GenderName, UserID } = req.body;
 

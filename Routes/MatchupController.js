@@ -45,7 +45,7 @@ function generateRoundRobin(departmentIDs) {
 }
 
 
-MatchupController.post('/generate_matchups', async (req, res) => {
+MatchupController.post('/generate_matchups', authenticateToken, async  (req, res) => {
     try {
         const { EventID, NumGames } = req.body;
 
@@ -90,7 +90,7 @@ MatchupController.post('/generate_matchups', async (req, res) => {
 // end create match
 
 // show matchs start
-MatchupController.get('/matchups', async (req, res) => {
+MatchupController.get('/matchups', authenticateToken, async  (req, res) => {
     try {
         const matchups = await db.promise().query('SELECT * FROM Matchups');
         res.status(200).json(matchups[0]);
@@ -102,7 +102,7 @@ MatchupController.get('/matchups', async (req, res) => {
 // show match end
 
 // show match by id start
-MatchupController.get('/matchup/:id', async (req, res) => {
+MatchupController.get('/matchup/:id', authenticateToken, async  (req, res) => {
     const matchupId = req.params.id;
     try {
         const [matchup] = await db.promise().query('SELECT * FROM Matchups WHERE MatchupID = ?', [matchupId]);
@@ -120,7 +120,7 @@ MatchupController.get('/matchup/:id', async (req, res) => {
 // show match by id end
 
 // show machtes per event
-MatchupController.get('/matchups/:eventID', async (req, res) => {
+MatchupController.get('/matchups/:eventID', authenticateToken, async  (req, res) => {
     try {
         const { eventID } = req.params;
 
@@ -138,7 +138,7 @@ MatchupController.get('/matchups/:eventID', async (req, res) => {
 
 
 // delete match start
-MatchupController.delete('/matchups/:id', async (req, res) => {
+MatchupController.delete('/matchups/:id', authenticateToken, async  (req, res) => {
     const matchupId = req.params.id;
     try {
         await db.promise().execute('DELETE FROM Matchups WHERE MatchupID = ?', [matchupId]);

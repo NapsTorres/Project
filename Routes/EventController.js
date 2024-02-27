@@ -28,7 +28,7 @@ EventController.post('/event_reg', authenticateToken, async (req, res) => {
 // Event registration end
 
 // show Event start
-EventController.get('/events', (req, res) => {
+EventController.get('/events', authenticateToken, async (req, res) => {
     try {
         db.query('SELECT EventID, EventName, DATE_FORMAT(EventDate, "%Y-%m-%d") AS EventDate, Location, MaxStudentsPerDept, CategoryID, UserID FROM Events', (err, result) => {
             if (err) {
@@ -48,7 +48,7 @@ EventController.get('/events', (req, res) => {
 
 
 // show Event by id start
-EventController.get('/event/:id', (req, res) => {
+EventController.get('/event/:id', authenticateToken, async (req, res) => {
     const EventID = req.params.id;
 
     if (!EventID) {
@@ -74,7 +74,7 @@ EventController.get('/event/:id', (req, res) => {
 
 
 // update event start
-EventController.put('/event/:id', async (req, res) => {
+EventController.put('/event/:id', authenticateToken, async  (req, res) => {
     const EventID = req.params.id;
     const { EventName, EventDate, Location, MaxStudentsPerDept, CategoryID} = req.body;
 
@@ -100,7 +100,7 @@ EventController.put('/event/:id', async (req, res) => {
 // update Event end
 
 // delete Event start
-EventController.delete('/event/:id', (req, res) => {
+EventController.delete('/event/:id', authenticateToken, async (req, res) => {
     const EventID = req.params.id;
 
     if (!EventID) {

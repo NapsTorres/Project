@@ -8,7 +8,7 @@ const { authenticateToken } = require('../auth');
 
 const PointController = express.Router();
 // Point registration start
-PointController.post('/point_reg', async (req, res) => {
+PointController.post('/point_reg', authenticateToken, async  (req, res) => {
     try {
         const { EventID } = req.body;
         const rankingPoints = req.body.rankingPoints;
@@ -27,7 +27,7 @@ PointController.post('/point_reg', async (req, res) => {
 });
 
 // show Point start
-PointController.get('/points', (req, res) => {
+PointController.get('/points', authenticateToken, async  (req, res) => {
     try {
         db.query('SELECT EventRankingPointsID, Ranks, Points, EventID FROM EventRankingPoints', (err, result) => {
             if (err) {
@@ -45,7 +45,7 @@ PointController.get('/points', (req, res) => {
 // show Point end
 
 // show Point by id start
-PointController.get('/point/:id', (req, res) => {
+PointController.get('/point/:id', authenticateToken, async (req, res) => {
     const EventRankingPointsID = req.params.id;
 
     if (!EventRankingPointsID) {
@@ -69,7 +69,7 @@ PointController.get('/point/:id', (req, res) => {
 // show Point by id end
 
 // update Point start
-PointController.put('/point/:id', async (req, res) => {
+PointController.put('/point/:id', authenticateToken, async  (req, res) => {
     const EventRankingPointsID = req.params.id;
     const { Ranks, Points, EventID } = req.body;
 
@@ -94,7 +94,7 @@ PointController.put('/point/:id', async (req, res) => {
 // update point end
 
 // delete point start
-PointController.delete('/point/:id', (req, res) => {
+PointController.delete('/point/:id', authenticateToken, async (req, res) => {
     const EventRankingPointsID = req.params.id;
 
     if (!EventRankingPointsID) {

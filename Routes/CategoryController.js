@@ -4,12 +4,10 @@ const bcrypt = require('bcrypt');
 const { db, secretKey } = require('../db');
 const { authenticateToken } = require('../auth');
 
-
-
 const CategoryController = express.Router();
 
 // Category registration start
-CategoryController.post('/category_reg', authenticateToken, async  (req, res) => {
+CategoryController.post('/category_reg', authenticateToken, async (req, res) => {
     try {
         const { CategoryName, UserID } = req.body;
 
@@ -24,6 +22,16 @@ CategoryController.post('/category_reg', authenticateToken, async  (req, res) =>
 });
 // Category registration end
 
-
+// Fetch all categories
+CategoryController.get('/categories', authenticateToken, async (req, res) => {
+    try {
+        const query = 'SELECT * FROM EventCategories';
+        const [categories] = await db.promise().query(query);
+        res.status(200).json(categories);
+    } catch (error) {
+        console.error('Error fetching categories', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
 
 module.exports = { CategoryController };

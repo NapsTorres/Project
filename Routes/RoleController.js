@@ -24,7 +24,7 @@ RoleController.post('/role_reg', async  (req, res) => {
 // role registration end
 
 // show roles start
-RoleController.get('/roles', authenticateToken, async (req, res) => {
+RoleController.get('/roles', async (req, res) => {
     try {
         db.query('SELECT RoleID, RoleCode, RoleName FROM Roles', (err, result) => {
             if (err) {

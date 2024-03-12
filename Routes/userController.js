@@ -98,17 +98,42 @@ userController.get('/user/:id', authenticateToken, async (req, res) => {
 // show user by id end
 
 // update user by id start
-userController.put('/user/:id', authenticateToken, async  (req, res) => {
+userController.put('/user/:id', authenticateToken, async (req, res) => {
     const UserID = req.params.id;
     const { Name, Username, Password, RoleID } = req.body;
-    const hashedPassword = await bcrypt.hash(Password, 10);
 
-    if (!UserID || !Name || !Username || !Password || !RoleID) {
-        return res.status(400).json({ error: true, message: 'Please provide name, username, password, and roleID' });
+    // Check if any of the fields are provided
+    if (!Name && !Username && !Password && !RoleID) {
+        return res.status(400).json({ error: true, message: 'Please provide at least one field to update' });
     }
 
     try {
-        db.query('UPDATE Users SET Name = ?, Username = ?, Password = ?, RoleID = ? WHERE UserID = ?', [Name, Username, hashedPassword, RoleID, UserID], (err, result) => {
+        // Construct the SET clause dynamically based on the provided fields
+        let updateQuery = 'UPDATE Users SET';
+        const updateParams = [];
+        if (Name) {
+            updateQuery += ' Name = ?,';
+            updateParams.push(Name);
+        }
+        if (Username) {
+            updateQuery += ' Username = ?,';
+            updateParams.push(Username);
+        }
+        if (Password) {
+            const hashedPassword = await bcrypt.hash(Password, 10);
+            updateQuery += ' Password = ?,';
+            updateParams.push(hashedPassword);
+        }
+        if (RoleID) {
+            updateQuery += ' RoleID = ?,';
+            updateParams.push(RoleID);
+        }
+
+        // Remove the trailing comma and add WHERE clause
+        updateQuery = updateQuery.slice(0, -1) + ' WHERE UserID = ?';
+        updateParams.push(UserID);
+
+        db.query(updateQuery, updateParams, (err, result) => {
             if (err) {
                 console.error('Error updating user:', err);
                 res.status(500).json({ message: 'Internal Server Error' });
@@ -121,6 +146,7 @@ userController.put('/user/:id', authenticateToken, async  (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 // update user by id end
 
 // delete user by id start

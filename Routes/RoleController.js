@@ -8,7 +8,7 @@ const { authenticateToken } = require('../auth');
 
 const RoleController = express.Router();
 // role registration start
-RoleController.post('/role_reg', authenticateToken, async  (req, res) => {
+RoleController.post('/role_reg', async  (req, res) => {
     try {
         const { RoleCode, RoleName } = req.body;
 

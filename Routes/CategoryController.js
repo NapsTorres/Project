@@ -9,10 +9,7 @@ const CategoryController = express.Router();
 // Category registration start
 CategoryController.post('/category_reg', authenticateToken, async (req, res) => {
     try {
-        const { CategoryName } = req.body;
-        const token = req.headers.authorization.split(' ')[1]; // Extract token from authorization header
-        const decodedToken = jwt.verify(token, 'napoleon-secret-key'); // Verify and decode the token
-        const UserID = decodedToken.data.userId; // Extract user ID from the decoded token
+        const { CategoryName, UserID } = req.body;
 
         const insertCategoryQuery = 'INSERT INTO EventCategories (CategoryName, UserID) VALUES (?, ?)';
         await db.promise().execute(insertCategoryQuery, [CategoryName, UserID]);
@@ -23,7 +20,6 @@ CategoryController.post('/category_reg', authenticateToken, async (req, res) => 
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
 // Category registration end
 
 // Fetch all categories

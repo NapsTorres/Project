@@ -30,7 +30,7 @@ EventController.post('/event_reg', authenticateToken, async (req, res) => {
 // show Event start
 EventController.get('/events', authenticateToken, async (req, res) => {
     try {
-        db.query('SELECT EventID, EventName, DATE_FORMAT(EventDate, "%Y-%m-%d") AS EventDate, Location, MaxStudentsPerDept, CategoryID, UserID FROM Events', (err, result) => {
+        db.query('SELECT e.EventID, e.EventName, DATE_FORMAT(e.EventDate, "%Y-%m-%d") AS EventDate, e.Location, e.MaxStudentsPerDept, ec.CategoryName, e.UserID FROM Events e JOIN EventCategories ec ON e.CategoryID = ec.CategoryID', (err, result) => {
             if (err) {
                 console.error('Error fetching Event', err);
                 res.status(500).json({ message: 'Internal Server Error' });
@@ -43,6 +43,7 @@ EventController.get('/events', authenticateToken, async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 
 // show Event end
 

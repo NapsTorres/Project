@@ -10,7 +10,7 @@ const CategoryController = express.Router();
 CategoryController.post('/category_reg', authenticateToken, async (req, res) => {
     try {
         // Extract the user ID from the request object after it's been populated by the authentication middleware
-        const UserID = req.userID;
+        const UserID = req.UserID;
         const { CategoryName } = req.body;
 
         const insertCategoryQuery = 'INSERT INTO EventCategories (CategoryName, UserID) VALUES (?, ?)';

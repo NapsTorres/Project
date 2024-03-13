@@ -9,25 +9,21 @@ const TeamController = express.Router();
 // Team registration start
 TeamController.post('/team_reg', authenticateToken, async (req, res) => {
     try {
-        const { EventID, teams } = req.body; // Extracting EventID and teams array from the request body
-        const UserID = req.user.UserID; // Assuming the user ID is stored in req.user.id after authentication
+        const { EventID, TeamCode, TeamName } = req.body; // Extract EventID, TeamCode, and TeamName from the request body
+        const UserID = req.user.UserID; // Assuming the user ID is stored in req.user.UserID after authentication
 
-        // Iterating over each team object and inserting it into the database
-        for (const team of teams) {
-            const { TeamCode, TeamName } = team;
+        console.log('Inserting team:', { EventID, TeamCode, TeamName });
 
-            console.log('Inserting team:', team);
+        const insertTeamQuery = 'INSERT INTO Teams (TeamCode, TeamName, UserID, EventID) VALUES (?, ?, ?, ?)';
+        await db.promise().execute(insertTeamQuery, [TeamCode, TeamName, UserID, EventID]);
 
-            const insertTeamsQuery = 'INSERT INTO Teams (TeamCode, TeamName, UserID, EventID) VALUES (?, ?, ?, ?)';
-            await db.promise().execute(insertTeamsQuery, [TeamCode, TeamName, UserID, EventID]);
-        }
-
-        res.status(201).json({ message: 'Teams registered successfully' });
+        res.status(201).json({ message: 'Team registered successfully' });
     } catch (error) {
-        console.error('Error registering Teams', error);
+        console.error('Error registering Team', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 // Team registration end
 
 

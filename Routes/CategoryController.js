@@ -9,6 +9,9 @@ const CategoryController = express.Router();
 // Category registration start
 CategoryController.post('/category_reg', authenticateToken, async (req, res) => {
     try {
+        // Log the request object to see if the user ID is present
+        console.log(req);
+
         // Extract the user ID from the request object after it's been populated by the authentication middleware
         const UserID = req.UserID;
         const { CategoryName } = req.body;
@@ -22,6 +25,7 @@ CategoryController.post('/category_reg', authenticateToken, async (req, res) => 
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 
 // Category registration end
 

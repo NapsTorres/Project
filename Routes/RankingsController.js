@@ -7,7 +7,7 @@ const { authenticateToken } = require('../auth');
 const RankingsController = express.Router();
 
 // Route to get department rankings
-RankingsController.get('/department_rankings', authenticateToken, async (req, res) => {
+RankingsController.get('/department_rankings', async (req, res) => {
     try {
         // SQL query to get department rankings with total points across all events
         const query = `

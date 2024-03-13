@@ -5,18 +5,16 @@ const { db, secretKey } = require('../db');
 const { authenticateToken } = require('../auth');
 const shuffle = require('lodash/shuffle'); // Import the shuffle function from lodash
 
-
-
 const MatchupController = express.Router();
 
-async function isMatchupExists(EventID, Department1ID, Department2ID) {
+async function isMatchupExists(EventID, Team1ID, Team2ID) {
     // Check if the matchup exists in the database
 }
 
 // Function to generate round-robin match-ups
-function generateRoundRobin(departmentIDs) {
-    // Shuffle the department IDs to ensure different matchups each time
-    const shuffledIDs = shuffle(departmentIDs);
+function generateRoundRobin(teamIDs) {
+    // Shuffle the team IDs to ensure different matchups each time
+    const shuffledIDs = shuffle(teamIDs);
 
     const matchups = [];
     const numTeams = shuffledIDs.length;
@@ -44,8 +42,7 @@ function generateRoundRobin(departmentIDs) {
     return matchups;
 }
 
-
-MatchupController.post('/generate_matchups', authenticateToken, async  (req, res) => {
+MatchupController.post('/generate_matchups', authenticateToken, async (req, res) => {
     try {
         const { EventID, NumGames } = req.body;
 
@@ -53,30 +50,30 @@ MatchupController.post('/generate_matchups', authenticateToken, async  (req, res
             return res.status(400).json({ message: 'EventID and NumGames are required' });
         }
 
-        // Fetch departments participating in the event
-        const [departments] = await db.promise().query('SELECT DepartmentID FROM Departments');
+        // Fetch teams participating in the event
+        const [teams] = await db.promise().query('SELECT TeamID FROM Teams WHERE EventID = ?', [EventID]);
 
-        if (departments.length < 2) {
-            return res.status(400).json({ message: 'Not enough departments to generate match-ups' });
+        if (teams.length < 2) {
+            return res.status(400).json({ message: 'Not enough teams to generate match-ups' });
         }
 
-        const departmentIDs = departments.map(department => department.DepartmentID); // Use department IDs directly
-        const roundRobinMatchups = generateRoundRobin(departmentIDs);
+        const teamIDs = teams.map(team => team.TeamID); // Use team IDs directly
+        const roundRobinMatchups = generateRoundRobin(teamIDs);
 
-        const insertMatchupsQuery = 'INSERT INTO Matchups (EventID, Department1ID, Department2ID, NumGames, WinnerDepartmentID) VALUES (?, ?, ?, ?, ?)';
-        const insertLeaderboardQuery = 'INSERT INTO EventLeaderboards (EventID, DepartmentID, Ranking, Points) VALUES (?, ?, ?, ?)';
+        const insertMatchupsQuery = 'INSERT INTO Matchups (EventID, Team1ID, Team2ID, NumGames, WinnerTeamID) VALUES (?, ?, ?, ?, ?)';
+        const insertLeaderboardQuery = 'INSERT INTO EventLeaderboards (EventID, TeamID, Ranking, Points) VALUES (?, ?, ?, ?)';
 
-        // Insert departments into leaderboard with default points and rankings
-        for (const departmentID of departmentIDs) {
-            await db.promise().execute(insertLeaderboardQuery, [EventID, departmentID, 0, 0]);
+        // Insert teams into leaderboard with default points and rankings
+        for (const teamID of teamIDs) {
+            await db.promise().execute(insertLeaderboardQuery, [EventID, teamID, 0, 0]);
         }
 
         // Generate match-ups and insert into database
         for (const roundMatchups of roundRobinMatchups) {
-            for (const [dept1, dept2] of roundMatchups) {
-                const matchupExists = await isMatchupExists(EventID, dept1, dept2);
+            for (const [team1, team2] of roundMatchups) {
+                const matchupExists = await isMatchupExists(EventID, team1, team2);
                 if (!matchupExists) {
-                    await db.promise().execute(insertMatchupsQuery, [EventID, dept1, dept2, NumGames, null]);
+                    await db.promise().execute(insertMatchupsQuery, [EventID, team1, team2, NumGames, null]);
                 }
             }
         }
@@ -87,10 +84,9 @@ MatchupController.post('/generate_matchups', authenticateToken, async  (req, res
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-// end create match
 
-// show matchs start
-MatchupController.get('/matchups', authenticateToken, async  (req, res) => {
+// Fetch all match-ups
+MatchupController.get('/matchups', authenticateToken, async (req, res) => {
     try {
         const matchups = await db.promise().query('SELECT * FROM Matchups');
         res.status(200).json(matchups[0]);
@@ -99,10 +95,9 @@ MatchupController.get('/matchups', authenticateToken, async  (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-// show match end
 
-// show match by id start
-MatchupController.get('/matchup/:id', authenticateToken, async  (req, res) => {
+// Fetch a match-up by its ID
+MatchupController.get('/matchup/:id', authenticateToken, async (req, res) => {
     const matchupId = req.params.id;
     try {
         const [matchup] = await db.promise().query('SELECT * FROM Matchups WHERE MatchupID = ?', [matchupId]);
@@ -117,10 +112,8 @@ MatchupController.get('/matchup/:id', authenticateToken, async  (req, res) => {
     }
 });
 
-// show match by id end
-
-// show machtes per event
-MatchupController.get('/matchups/:eventID', authenticateToken, async  (req, res) => {
+// Fetch match-ups by event ID
+MatchupController.get('/matchups/:eventID', authenticateToken, async (req, res) => {
     try {
         const { eventID } = req.params;
 
@@ -135,10 +128,8 @@ MatchupController.get('/matchups/:eventID', authenticateToken, async  (req, res)
     }
 });
 
-
-
-// delete match start
-MatchupController.delete('/matchups/:id', authenticateToken, async  (req, res) => {
+// Delete a match-up by its ID
+MatchupController.delete('/matchups/:id', authenticateToken, async (req, res) => {
     const matchupId = req.params.id;
     try {
         await db.promise().execute('DELETE FROM Matchups WHERE MatchupID = ?', [matchupId]);
@@ -148,9 +139,5 @@ MatchupController.delete('/matchups/:id', authenticateToken, async  (req, res) =
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
-// delete match end
-
-
 
 module.exports = { MatchupController };

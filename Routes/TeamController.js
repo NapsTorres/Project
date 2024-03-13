@@ -12,9 +12,14 @@ TeamController.post('/team_reg', authenticateToken, async (req, res) => {
         const { EventID, teams } = req.body; // Extracting EventID and teams array from the request body
         const UserID = req.user.UserID; // Assuming the user ID is stored in req.user.id after authentication
 
+        console.log('Received EventID:', EventID);
+        console.log('Received teams:', teams);
+
         // Iterating over each team object and inserting it into the database
         for (const team of teams) {
             const { TeamCode, TeamName } = team;
+
+            console.log('Inserting team:', team);
 
             const insertTeamsQuery = 'INSERT INTO Teams (TeamCode, TeamName, UserID, EventID) VALUES (?, ?, ?, ?)';
             await db.promise().execute(insertTeamsQuery, [TeamCode, TeamName, UserID, EventID]);
@@ -27,6 +32,7 @@ TeamController.post('/team_reg', authenticateToken, async (req, res) => {
     }
 });
 // Team registration end
+
 
 // Show Teams start
 TeamController.get('/teams', authenticateToken, async (req, res) => {

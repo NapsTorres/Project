@@ -13,8 +13,9 @@ CategoryController.post('/category_reg', authenticateToken, async (req, res) => 
         console.log(req);
 
         // Extract the user ID from the request object after it's been populated by the authentication middleware
-        const UserID = req.UserID;
         const { CategoryName } = req.body;
+        const UserID = req.UserID;
+        
 
         const insertCategoryQuery = 'INSERT INTO EventCategories (CategoryName, UserID) VALUES (?, ?)';
         await db.promise().execute(insertCategoryQuery, [CategoryName, UserID]);

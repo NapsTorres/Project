@@ -6,7 +6,7 @@ const { connectDB } = require('./db');
 const { authenticateToken } = require('./auth');
 const { userController } = require('./Routes/userController');
 const { RoleController } = require('./Routes/RoleController');
-const { DeptController } = require('./Routes/DeptController');
+const { TeamController } = require('./Routes/TeamController');
 const { GenderController } = require('./Routes/GenderController');
 const { CategoryController } = require('./Routes/CategoryController');
 const { EventController } = require('./Routes/EventController');
@@ -28,7 +28,7 @@ connectDB();
 
 app.use('/api', userController);
 app.use('/api', RoleController);
-app.use('/api', DeptController);
+app.use('/api', TeamController);
 app.use('/api', GenderController);
 app.use('/api', CategoryController);
 app.use('/api', EventController);

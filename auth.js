@@ -8,14 +8,12 @@ function authenticateToken(req, res, next) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    jwt.verify(token, secretKey, (err, decodedToken) => {
+    jwt.verify(token, secretKey, (err, user) => {
         if (err) {
             return res.status(403).json({ error: 'Forbidden' });
         }
 
-        // Extract user ID from decoded token and attach it to the request object
-        req.userID = decodedToken.UserID;
-
+        req.user = user;
         next();
     });
 }

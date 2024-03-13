@@ -9,7 +9,7 @@ const { authenticateToken } = require('../auth');
 const userController = express.Router();
 
 // register user start
-userController.post('/register', authenticateToken, async  (req, res) => {
+userController.post('/register', async  (req, res) => {
     try {
         const { Name, Username, Password, RoleID } = req.body;
         const hashedPassword = await bcrypt.hash(Password, 10);

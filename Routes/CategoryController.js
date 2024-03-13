@@ -11,10 +11,13 @@ CategoryController.post('/category_reg', authenticateToken, async (req, res) => 
     try {
         // Extract the user ID from the request object after it's been populated by the authentication middleware
         const UserID = req.userID;
+        console.log('UserID:', UserID); // Log the extracted user ID
         const { CategoryName } = req.body;
+        console.log('CategoryName:', CategoryName); // Log the received category name
 
         const insertCategoryQuery = 'INSERT INTO EventCategories (CategoryName, UserID) VALUES (?, ?)';
         await db.promise().execute(insertCategoryQuery, [CategoryName, UserID]);
+        console.log('Category registered successfully');
 
         res.status(201).json({ message: 'Category registered successfully' });
     } catch (error) {
@@ -22,6 +25,7 @@ CategoryController.post('/category_reg', authenticateToken, async (req, res) => 
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 
 // Category registration end
 

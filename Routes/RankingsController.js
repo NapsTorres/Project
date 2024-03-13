@@ -4,8 +4,6 @@ const bcrypt = require('bcrypt');
 const { db, secretKey } = require('../db');
 const { authenticateToken } = require('../auth');
 
-
-
 const RankingsController = express.Router();
 
 // Route to get department rankings
@@ -20,9 +18,13 @@ RankingsController.get('/department_rankings', authenticateToken, async (req, re
             LEFT JOIN EventLeaderboards el ON d.DepartmentID = el.DepartmentID
             GROUP BY d.DepartmentID, d.DepartmentCode, d.DepartmentName;
         `;
+        
+        console.log('Executing query:', query);
 
         // Execute the query
         const [rankings] = await db.promise().query(query);
+
+        console.log('Department rankings:', rankings);
 
         // Send the department rankings as JSON response
         res.status(200).json(rankings);
@@ -31,6 +33,5 @@ RankingsController.get('/department_rankings', authenticateToken, async (req, re
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
 
 module.exports = { RankingsController };

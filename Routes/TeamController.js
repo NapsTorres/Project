@@ -12,9 +12,6 @@ TeamController.post('/team_reg', authenticateToken, async (req, res) => {
         const { EventID, teams } = req.body; // Extracting EventID and teams array from the request body
         const UserID = req.user.UserID; // Assuming the user ID is stored in req.user.id after authentication
 
-        console.log('Received EventID:', EventID);
-        console.log('Received teams:', teams);
-
         // Iterating over each team object and inserting it into the database
         for (const team of teams) {
             const { TeamCode, TeamName } = team;
@@ -37,7 +34,7 @@ TeamController.post('/team_reg', authenticateToken, async (req, res) => {
 // Show Teams start
 TeamController.get('/teams', authenticateToken, async (req, res) => {
     try {
-        db.query('SELECT TeamID, TeamCode, TeamName FROM Teams', (err, result) => {
+        db.query('SELECT TeamID, TeamCode, TeamName, EventID FROM Teams', (err, result) => {
             if (err) {
                 console.error('Error fetching Teams', err);
                 res.status(500).json({ message: 'Internal Server Error' });
@@ -61,7 +58,7 @@ TeamController.get('/team/:id', authenticateToken, async (req, res) => {
     }
 
     try {
-        db.query('SELECT TeamID, TeamCode, TeamName FROM Teams WHERE TeamID = ?', TeamID, (err, result) => {
+        db.query('SELECT TeamID, TeamCode, TeamName, EventID FROM Teams WHERE TeamID = ?', TeamID, (err, result) => {
             if (err) {
                 console.error('Error fetching Team', err);
                 res.status(500).json({ message: 'Internal Server Error' });
@@ -76,6 +73,7 @@ TeamController.get('/team/:id', authenticateToken, async (req, res) => {
 });
 // Show Team by ID end
 
+
 // Show Teams by EventID start
 TeamController.get('/teams/event/:eventId', authenticateToken, async (req, res) => {
     const eventId = req.params.eventId;
@@ -85,7 +83,7 @@ TeamController.get('/teams/event/:eventId', authenticateToken, async (req, res) 
     }
 
     try {
-        db.query('SELECT TeamID, TeamCode, TeamName FROM Teams WHERE EventID = ?', eventId, (err, result) => {
+        db.query('SELECT TeamID, TeamCode, TeamName, EventID FROM Teams WHERE EventID = ?', eventId, (err, result) => {
             if (err) {
                 console.error('Error fetching Teams by EventID', err);
                 res.status(500).json({ message: 'Internal Server Error' });
@@ -99,6 +97,7 @@ TeamController.get('/teams/event/:eventId', authenticateToken, async (req, res) 
     }
 });
 // Show Teams by EventID end
+
 
 
 // Update Team start

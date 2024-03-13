@@ -4,10 +4,12 @@ const bcrypt = require('bcrypt');
 const { db, secretKey } = require('../db');
 const { authenticateToken } = require('../auth');
 
+
+
 const RankingsController = express.Router();
 
 // Route to get department rankings
-RankingsController.get('/department_rankings', async (req, res) => {
+RankingsController.get('/department_rankings', authenticateToken, async (req, res) => {
     try {
         // SQL query to get department rankings with total points across all events
         const query = `
@@ -15,10 +17,14 @@ RankingsController.get('/department_rankings', async (req, res) => {
                    SUM(el.Points) AS TotalPoints,
                    RANK() OVER (ORDER BY SUM(el.Points) DESC) AS Ranking
             FROM Departments d
-            LEFT JOIN EventLeaderboards el ON d.DepartmentID = el.DepartmentID
+            LEFT JOIN (
+                SELECT DepartmentID, SUM(Points) AS Points
+                FROM EventLeaderboards
+                GROUP BY DepartmentID
+            ) el ON d.DepartmentID = el.DepartmentID
             GROUP BY d.DepartmentID, d.DepartmentCode, d.DepartmentName;
         `;
-        
+
         console.log('Executing query:', query);
 
         // Execute the query

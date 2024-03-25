@@ -9,9 +9,9 @@ const RegistrationController = express.Router();
 // Create registration
 RegistrationController.post('/registration', authenticateToken, async  (req, res) => {
     try {
-        const { EventID, StudentID, Name, GenderID, DepartmentID, MedicalCertificate } = req.body;
-        const insertRegistrationQuery = 'INSERT INTO Registrations (EventID, StudentID, Name, GenderID, DepartmentID, MedicalCertificate) VALUES (?, ?, ?, ?, ?, ?)';
-        await db.promise().execute(insertRegistrationQuery, [EventID, StudentID, Name, GenderID, DepartmentID, MedicalCertificate]);
+        const { EventID, StudentID, Name, GenderID, TeamID, MedicalCertificate } = req.body;
+        const insertRegistrationQuery = 'INSERT INTO Registrations (EventID, StudentID, Name, GenderID, TeamID, MedicalCertificate) VALUES (?, ?, ?, ?, ?, ?)';
+        await db.promise().execute(insertRegistrationQuery, [EventID, StudentID, Name, GenderID, TeamID, MedicalCertificate]);
         res.status(201).json({ message: 'Registration created successfully' });
     } catch (error) {
         console.error('Error creating registration', error);
@@ -19,7 +19,7 @@ RegistrationController.post('/registration', authenticateToken, async  (req, res
     }
 });
 
-// Get all registrations with gender and department codes
+// Get all registrations with gender and team codes
 RegistrationController.get('/registrations', authenticateToken, async  (req, res) => {
     try {
         const query = `
@@ -29,12 +29,12 @@ RegistrationController.get('/registrations', authenticateToken, async  (req, res
                 r.StudentID, 
                 r.Name, 
                 g.GenderCode AS Gender, 
-                d.DepartmentCode AS Department, 
+                t.TeamCode AS Team, 
                 r.MedicalCertificate
             FROM 
                 Registrations r 
                 JOIN Gender g ON r.GenderID = g.GenderID 
-                JOIN Departments d ON r.DepartmentID = d.DepartmentID`;
+                JOIN Teams t ON r.TeamID = t.TeamID`;
         const [registrations] = await db.promise().query(query);
         res.status(200).json(registrations);
     } catch (error) {
@@ -43,7 +43,7 @@ RegistrationController.get('/registrations', authenticateToken, async  (req, res
     }
 });
 
-// Get registration by ID with gender and department codes
+// Get registration by ID with gender and team codes
 RegistrationController.get('/registration/:id', authenticateToken, async  (req, res) => {
     const registrationId = req.params.id;
     try {
@@ -54,12 +54,12 @@ RegistrationController.get('/registration/:id', authenticateToken, async  (req, 
                 r.StudentID, 
                 r.Name, 
                 g.GenderCode AS Gender, 
-                d.DepartmentCode AS Department, 
+                t.TeamCode AS Team, 
                 r.MedicalCertificate
             FROM 
                 Registrations r 
                 JOIN Gender g ON r.GenderID = g.GenderID 
-                JOIN Departments d ON r.DepartmentID = d.DepartmentID 
+                JOIN Teams t ON r.TeamID = t.TeamID 
             WHERE 
                 r.RegistrationID = ?`;
         const [[registration]] = await db.promise().query(query, [registrationId]);
@@ -74,7 +74,7 @@ RegistrationController.get('/registration/:id', authenticateToken, async  (req, 
     }
 });
 
-// Get registrations by Event ID with gender and department codes
+// Get registrations by Event ID with gender and team codes
 RegistrationController.get('/registration/event/:eventId', authenticateToken, async  (req, res) => {
     const eventId = req.params.eventId;
     try {
@@ -85,12 +85,12 @@ RegistrationController.get('/registration/event/:eventId', authenticateToken, as
                 r.StudentID, 
                 r.Name, 
                 g.GenderCode AS Gender, 
-                d.DepartmentCode AS Department, 
+                t.TeamCode AS Team, 
                 r.MedicalCertificate
             FROM 
                 Registrations r 
                 JOIN Gender g ON r.GenderID = g.GenderID 
-                JOIN Departments d ON r.DepartmentID = d.DepartmentID 
+                JOIN Teams t ON r.TeamID = t.TeamID 
             WHERE 
                 r.EventID = ?`;
         const [registrations] = await db.promise().query(query, [eventId]);
@@ -105,9 +105,9 @@ RegistrationController.get('/registration/event/:eventId', authenticateToken, as
     }
 });
 
-// get registration by dept
-RegistrationController.get('/registration/department/:departmentId', authenticateToken, async  (req, res) => {
-    const departmentId = req.params.departmentId;
+// Get registration by team
+RegistrationController.get('/registration/team/:teamId', authenticateToken, async  (req, res) => {
+    const teamId = req.params.teamId;
     try {
         const query = `
             SELECT 
@@ -116,22 +116,22 @@ RegistrationController.get('/registration/department/:departmentId', authenticat
                 r.StudentID, 
                 r.Name, 
                 g.GenderCode AS Gender, 
-                d.DepartmentCode AS Department, 
+                t.TeamCode AS Team, 
                 r.MedicalCertificate
             FROM 
                 Registrations r 
                 JOIN Gender g ON r.GenderID = g.GenderID 
-                JOIN Departments d ON r.DepartmentID = d.DepartmentID 
+                JOIN Teams t ON r.TeamID = t.TeamID 
             WHERE 
-                r.DepartmentID = ?`;
-        const [registrations] = await db.promise().query(query, [departmentId]);
+                r.TeamID = ?`;
+        const [registrations] = await db.promise().query(query, [teamId]);
         if (!registrations || registrations.length === 0) {
-            res.status(404).json({ message: 'Registrations not found for the given Department ID' });
+            res.status(404).json({ message: 'Registrations not found for the given Team ID' });
         } else {
             res.status(200).json(registrations);
         }
     } catch (error) {
-        console.error('Error fetching registrations by Department ID:', error);
+        console.error('Error fetching registrations by Team ID:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
@@ -140,15 +140,15 @@ RegistrationController.get('/registration/department/:departmentId', authenticat
 RegistrationController.put('/registration/:id', authenticateToken, async  (req, res) => {
     const registrationId = req.params.id;
     try {
-        const { EventID, StudentID, Name, GenderID, DepartmentID, MedicalCertificate } = req.body;
+        const { EventID, StudentID, Name, GenderID, TeamID, MedicalCertificate } = req.body;
 
-        if (!EventID || !StudentID || !Name || !GenderID || !DepartmentID || !MedicalCertificate) {
-            return res.status(400).send({ error: true, message: 'Please provide EventID, StudentID, Name, GenderID, DepartmentID, MedicalCertificate' });
+        if (!EventID || !StudentID || !Name || !GenderID || !TeamID || !MedicalCertificate) {
+            return res.status(400).send({ error: true, message: 'Please provide EventID, StudentID, Name, GenderID, TeamID, MedicalCertificate' });
         }
 
-        const updateRegistrationQuery = 'UPDATE Registrations SET EventID = ?, StudentID = ?, Name = ?, GenderID = ?, DepartmentID = ?, MedicalCertificate = ? WHERE RegistrationID = ?';
+        const updateRegistrationQuery = 'UPDATE Registrations SET EventID = ?, StudentID = ?, Name = ?, GenderID = ?, TeamID = ?, MedicalCertificate = ? WHERE RegistrationID = ?';
         
-        const [result] = await db.promise().execute(updateRegistrationQuery, [EventID, StudentID, Name, GenderID, DepartmentID, MedicalCertificate, registrationId]);
+        const [result] = await db.promise().execute(updateRegistrationQuery, [EventID, StudentID, Name, GenderID, TeamID, MedicalCertificate, registrationId]);
         
         if (result.affectedRows > 0) {
             res.status(200).json(result);
@@ -169,9 +169,9 @@ RegistrationController.delete('/registrations/:id', authenticateToken, async  (r
         await db.promise().execute('DELETE FROM Registrations WHERE RegistrationID = ?', [registrationId]);
         res.status(200).json({ message: 'Registration deleted successfully' });
     } catch (error) {
-        console.error('Error deleting registration', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+    console.error('Error deleting registration', error);
+    res.status(500).json({ message: 'Internal Server Error' });
     }
-});
-
-module.exports = { RegistrationController };
+    });
+    
+    module.exports = { RegistrationController };

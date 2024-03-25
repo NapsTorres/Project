@@ -4,17 +4,16 @@ const bcrypt = require('bcrypt');
 const { db, secretKey } = require('../db');
 const { authenticateToken } = require('../auth');
 
-
-
 const EventLeaderboardController = express.Router();
-/// Get all event leaderboards
-EventLeaderboardController.get('/Eventleaderboards', authenticateToken, async  (req, res) => {
+
+// Get all event leaderboards
+EventLeaderboardController.get('/eventleaderboards', authenticateToken, async  (req, res) => {
     try {
-        // Query to fetch all event leaderboards with department codes
+        // Query to fetch all event leaderboards with team codes
         const query = `
-            SELECT l.*, d.DepartmentCode 
+            SELECT l.*, t.TeamCode 
             FROM EventLeaderboards l
-            INNER JOIN Departments d ON l.DepartmentID = d.DepartmentID
+            INNER JOIN Teams t ON l.TeamID = t.TeamID
         `;
         const [leaderboards] = await db.promise().query(query);
 
@@ -27,15 +26,15 @@ EventLeaderboardController.get('/Eventleaderboards', authenticateToken, async  (
 });
 
 // Get event leaderboard by event ID
-EventLeaderboardController.get('/Eventleaderboard/:eventId', authenticateToken, async  (req, res) => {
+EventLeaderboardController.get('/eventleaderboard/:eventId', authenticateToken, async  (req, res) => {
     try {
         const eventId = req.params.eventId;
 
-        // Query to fetch event leaderboards for the specified event with department codes
+        // Query to fetch event leaderboards for the specified event with team codes
         const query = `
-            SELECT l.*, d.DepartmentCode 
+            SELECT l.*, t.TeamCode 
             FROM EventLeaderboards l
-            INNER JOIN Departments d ON l.DepartmentID = d.DepartmentID
+            INNER JOIN Teams t ON l.TeamID = t.TeamID
             WHERE l.EventID = ?
         `;
         const [leaderboards] = await db.promise().query(query, [eventId]);
@@ -52,6 +51,5 @@ EventLeaderboardController.get('/Eventleaderboard/:eventId', authenticateToken, 
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
 
 module.exports = { EventLeaderboardController };

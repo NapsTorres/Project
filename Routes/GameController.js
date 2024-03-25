@@ -43,16 +43,16 @@ async function updateEventLeaderboard(eventId) {
 
         console.log('Updating event leaderboard for event ID:', eventId);
         
-        // Fetch all departments participating in the event
-        const [departments] = await db.promise().query(`
-            SELECT d.DepartmentID, d.DepartmentName,
-            COUNT(m.WinnerDepartmentID) AS TotalWins
-            FROM Departments d
-            LEFT JOIN Matchups m ON d.DepartmentID = m.WinnerDepartmentID AND m.EventID = ?
-            GROUP BY d.DepartmentID
+        // Fetch all teams participating in the event
+        const [teams] = await db.promise().query(`
+            SELECT t.TeamID, t.TeamName,
+            COUNT(m.WinnerTeamID) AS TotalWins
+            FROM Teams t
+            LEFT JOIN Matchups m ON t.TeamID = m.WinnerTeamID AND m.EventID = ?
+            GROUP BY t.TeamID
         `, [eventId]);
 
-        console.log('Retrieved departments:', departments);
+        console.log('Retrieved teams:', teams);
 
         // Retrieve event ranking points
         const [rankingPoints] = await db.promise().query('SELECT * FROM EventRankingPoints WHERE EventID = ?', [eventId]);
@@ -67,32 +67,32 @@ async function updateEventLeaderboard(eventId) {
 
         console.log('Rank to points mapping:', rankToPoints);
 
-        // Sort departments by total wins
-        departments.sort((a, b) => b.TotalWins - a.TotalWins);
+        // Sort teams by total wins
+        teams.sort((a, b) => b.TotalWins - a.TotalWins);
 
-        console.log('Sorted departments:', departments);
+        console.log('Sorted teams:', teams);
 
-        // Assign ranks and points to departments
+        // Assign ranks and points to teams
         let currentRank = 1;
         let previousWins = null;
-        departments.forEach((department, index) => {
-            if (department.TotalWins !== previousWins) {
-                previousWins = department.TotalWins;
+        teams.forEach((team, index) => {
+            if (team.TotalWins !== previousWins) {
+                previousWins = team.TotalWins;
                 currentRank = index + 1;
             }
             const points = rankToPoints[currentRank] || 0; // Default points to 0 if not found in the mapping
-            department.Rank = currentRank;
-            department.Points = points;
+            team.Rank = currentRank;
+            team.Points = points;
         });
 
-        console.log('Departments with rank and points:', departments);
+        console.log('Teams with rank and points:', teams);
 
         // Update event leaderboard table with new rankings
-        for (const department of departments) {
-            const departmentId = department.DepartmentID;
-            const departmentRank = department.Rank;
-            const departmentPoints = department.Points;
-            await db.promise().execute('UPDATE EventLeaderboards SET Ranking = ?, Points = ? WHERE EventID = ? AND DepartmentID = ?', [departmentRank, departmentPoints, eventId, departmentId]);
+        for (const team of teams) {
+            const teamId = team.TeamID;
+            const teamRank = team.Rank;
+            const teamPoints = team.Points;
+            await db.promise().execute('UPDATE EventLeaderboards SET Ranking = ?, Points = ? WHERE EventID = ? AND TeamID = ?', [teamRank, teamPoints, eventId, teamId]);
         }
 
         console.log('Event leaderboard updated successfully');
@@ -106,62 +106,62 @@ async function updateEventLeaderboard(eventId) {
 
 
 
-async function updateWinnerDepartmentAndRankings(matchupId) {
+async function updateWinnerTeamAndRankings(matchupId) {
     try {
         // Retrieve the EventID associated with the matchup
         const [matchup] = await db.promise().query('SELECT EventID FROM Matchups WHERE MatchupID = ?', [matchupId]);
         const eventId = matchup[0].EventID;
 
-        // Update winner department for the matchup
-        await updateWinnerDepartment(matchupId);
+        // Update winner team for the matchup
+        await updateWinnerTeam(matchupId);
 
         // Update event leaderboard for the retrieved EventID
         await updateEventLeaderboard(eventId);
     } catch (error) {
-        console.error('Error updating winner department and rankings:', error);
+        console.error('Error updating winner team and rankings:', error);
         throw error;
     }
 }
 
 
-async function updateWinnerDepartment(matchupId) {
+async function updateWinnerTeam(matchupId) {
     try {
         // Retrieve games for the matchup
-        const [games] = await db.promise().query('SELECT Department1Score, Department2Score FROM Games WHERE MatchupID = ?', [matchupId]);
+        const [games] = await db.promise().query('SELECT Team1Score, Team2Score FROM Games WHERE MatchupID = ?', [matchupId]);
         
         // Retrieve the total number of games expected for this matchup
         const [matchup] = await db.promise().query('SELECT NumGames, EventID FROM Matchups WHERE MatchupID = ?', [matchupId]);
         const numGames = matchup[0].NumGames;
         const eventId = matchup[0].EventID;
 
-        // Count wins for each department
-        let department1Wins = 0;
-        let department2Wins = 0;
+        // Count wins for each team
+        let team1Wins = 0;
+        let team2Wins = 0;
         for (const game of games) {
-            if (game.Department1Score > game.Department2Score) {
-                department1Wins++;
-            } else if (game.Department1Score < game.Department2Score) {
-                department2Wins++;
+            if (game.Team1Score > game.Team2Score) {
+                team1Wins++;
+            } else if (game.Team1Score < game.Team2Score) {
+                team2Wins++;
             }
         }
 
-        // Determine the winner department
-        let winnerDepartmentId = null;
-        if (department1Wins >= Math.ceil(numGames / 2)) {
-            const [matchupInfo] = await db.promise().query('SELECT Department1ID FROM Matchups WHERE MatchupID = ?', [matchupId]);
-            winnerDepartmentId = matchupInfo[0].Department1ID;
-        } else if (department2Wins >= Math.ceil(numGames / 2)) {
-            const [matchupInfo] = await db.promise().query('SELECT Department2ID FROM Matchups WHERE MatchupID = ?', [matchupId]);
-            winnerDepartmentId = matchupInfo[0].Department2ID;
+        // Determine the winner team
+        let winnerTeamId = null;
+        if (team1Wins >= Math.ceil(numGames / 2)) {
+            const [matchupInfo] = await db.promise().query('SELECT Team1ID FROM Matchups WHERE MatchupID = ?', [matchupId]);
+            winnerTeamId = matchupInfo[0].Team1ID;
+        } else if (team2Wins >= Math.ceil(numGames / 2)) {
+            const [matchupInfo] = await db.promise().query('SELECT Team2ID FROM Matchups WHERE MatchupID = ?', [matchupId]);
+            winnerTeamId = matchupInfo[0].Team2ID;
         }
 
-        // Update the winner department for the matchup
-        await db.promise().execute('UPDATE Matchups SET WinnerDepartmentID = ? WHERE MatchupID = ?', [winnerDepartmentId, matchupId]);
+        // Update the winner team for the matchup
+        await db.promise().execute('UPDATE Matchups SET WinnerTeamID = ? WHERE MatchupID = ?', [winnerTeamId, matchupId]);
 
-        // After updating the winner department, update the event leaderboard
+        // After updating the winner team, update the event leaderboard
         await updateEventLeaderboard(eventId);
     } catch (error) {
-        console.error('Error updating winner department:', error);
+        console.error('Error updating winner team:', error);
         throw error;
     }
 }
@@ -185,7 +185,6 @@ GameController.post('/create_game', authenticateToken, async  (req, res) => {
         const formattedGameDate = moment(GameDate).format('YYYY-MM-DD');
         const formattedStartTime = moment(StartTime, 'HH:mm:ss').format('hh:mm A');
         const formattedEndTime = moment(EndTime, 'HH:mm:ss').format('hh:mm A');
-
         const insertGameQuery = `
             INSERT INTO Games (MatchupID, GameNumber, GameDate, StartTime, EndTime, Status)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -209,8 +208,8 @@ GameController.get('/games', authenticateToken, async  (req, res) => {
             StartTime: moment(game.StartTime, 'HH:mm:ss').format('hh:mm A'),
             EndTime: moment(game.EndTime, 'HH:mm:ss').format('hh:mm A'),
             Status: getStatusName(game.Status),
-            Department1Outcome: getOutcomeName(game.Department1Outcome),
-            Department2Outcome: getOutcomeName(game.Department2Outcome)
+            Team1Outcome: getOutcomeName(game.Team1Outcome),
+            Team2Outcome: getOutcomeName(game.Team2Outcome)
         }));
 
         res.status(200).json(formattedGames);
@@ -234,8 +233,8 @@ GameController.get('/game/:id', authenticateToken, async  (req, res) => {
             StartTime: moment(game[0].StartTime, 'HH:mm:ss').format('hh:mm A'),
             EndTime: moment(game[0].EndTime, 'HH:mm:ss').format('hh:mm A'),
             Status: getStatusName(game[0].Status),
-            Department1Outcome: getOutcomeName(game[0].Department1Outcome),
-            Department2Outcome: getOutcomeName(game[0].Department2Outcome)
+            Team1Outcome: getOutcomeName(game[0].Team1Outcome),
+            Team2Outcome: getOutcomeName(game[0].Team2Outcome)
         };
 
         res.status(200).json(formattedGame);
@@ -256,8 +255,8 @@ GameController.get('/games/event/:eventId', authenticateToken, async  (req, res)
             StartTime: moment(game.StartTime, 'HH:mm:ss').format('hh:mm A'),
             EndTime: moment(game.EndTime, 'HH:mm:ss').format('hh:mm A'),
             Status: getStatusName(game.Status),
-            Department1Outcome: getOutcomeName(game.Department1Outcome),
-            Department2Outcome: getOutcomeName(game.Department2Outcome)
+            Team1Outcome: getOutcomeName(game.Team1Outcome),
+            Team2Outcome: getOutcomeName(game.Team2Outcome)
         }));
 
         res.status(200).json(formattedGames);
@@ -278,8 +277,8 @@ GameController.get('/games/matchup/:matchupId', authenticateToken, async  (req, 
             StartTime: moment(game.StartTime, 'HH:mm:ss').format('hh:mm A'),
             EndTime: moment(game.EndTime, 'HH:mm:ss').format('hh:mm A'),
             Status: getStatusName(game.Status),
-            Department1Outcome: getOutcomeName(game.Department1Outcome),
-            Department2Outcome: getOutcomeName(game.Department2Outcome)
+            Team1Outcome: getOutcomeName(game.Team1Outcome),
+            Team2Outcome: getOutcomeName(game.Team2Outcome)
         }));
 
         res.status(200).json(formattedGames);
@@ -293,10 +292,10 @@ GameController.get('/games/matchup/:matchupId', authenticateToken, async  (req, 
 GameController.put('/game/:id', authenticateToken, async  (req, res) => {
     try {
         const gameId = req.params.id;
-        const { Status, Department1Score, Department2Score, GameDate, StartTime, EndTime } = req.body;
+        const { Status, Team1Score, Team2Score, GameDate, StartTime, EndTime } = req.body;
 
         // Validate request body
-        if (!Status && Department1Score === undefined && Department2Score === undefined && !GameDate && !StartTime && !EndTime) {
+        if (!Status && Team1Score === undefined && Team2Score === undefined && !GameDate && !StartTime && !EndTime) {
             return res.status(400).json({ message: 'No fields to update' });
         }
 
@@ -315,13 +314,13 @@ GameController.put('/game/:id', authenticateToken, async  (req, res) => {
             query += 'Status = ?, ';
             queryParams.push(Status);
         }
-        if (Department1Score !== undefined) {
-            query += 'Department1Score = ?, ';
-            queryParams.push(Department1Score);
+        if (Team1Score !== undefined) {
+            query += 'Team1Score = ?, ';
+            queryParams.push(Team1Score);
         }
-        if (Department2Score !== undefined) {
-            query += 'Department2Score = ?, ';
-            queryParams.push(Department2Score);
+        if (Team2Score !== undefined) {
+            query += 'Team2Score = ?, ';
+            queryParams.push(Team2Score);
         }
         if (GameDate !== undefined) {
             query += 'GameDate = ?, ';
@@ -342,28 +341,28 @@ GameController.put('/game/:id', authenticateToken, async  (req, res) => {
         // Execute SQL query to update game details
         await db.promise().execute(query, queryParams);
 
-        // If both department scores are updated
-        if (Department1Score !== undefined && Department2Score !== undefined) {
-            let department1Outcome = '0';
-            let department2Outcome = '0';
+        // If both team scores are updated
+        if (Team1Score !== undefined && Team2Score !== undefined) {
+            let team1Outcome = '0';
+            let team2Outcome = '0';
 
-            if (Department1Score > Department2Score) {
-                department1Outcome = '1';
-                department2Outcome = '2';
-            } else if (Department1Score < Department2Score) {
-                department1Outcome = '2';
-                department2Outcome = '1';
+            if (Team1Score > Team2Score) {
+                team1Outcome = '1';
+                team2Outcome = '2';
+            } else if (Team1Score < Team2Score) {
+                team1Outcome = '2';
+                team2Outcome = '1';
             } else {
                 // If it's a tie, increment number of games for the matchup
                 await db.promise().execute('UPDATE Matchups SET NumGames = NumGames + 1 WHERE MatchupID = ?', [matchupId]);
             }
 
-            // Update game with department outcomes
-            await db.promise().execute('UPDATE Games SET Department1Outcome = ?, Department2Outcome = ? WHERE GameID = ?', [department1Outcome, department2Outcome, gameId]);
+            // Update game with team outcomes
+            await db.promise().execute('UPDATE Games SET Team1Outcome = ?, Team2Outcome = ? WHERE GameID = ?', [team1Outcome, team2Outcome, gameId]);
         }
 
-        // Update winner department and event rankings, passing the EventID
-        await updateWinnerDepartmentAndRankings(matchupId); // Pass the MatchupID
+        // Update winner team and event rankings, passing the EventID
+        await updateWinnerTeamAndRankings(matchupId); // Pass the MatchupID
 
         // Fetch and return updated game details
         const [updatedGame] = await db.promise().query('SELECT * FROM Games WHERE GameID = ?', [gameId]);

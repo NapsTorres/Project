@@ -12,36 +12,49 @@ async function isMatchupExists(EventID, Team1ID, Team2ID) {
 }
 
 // Function to generate round-robin match-ups
-function generateRoundRobin(teamIDs) {
-    // Shuffle the team IDs to ensure different matchups each time
-    const shuffledIDs = shuffle(teamIDs);
+function generateRoundRobin(departmentIDs) {
+    const numTeams = departmentIDs.length;
 
-    const matchups = [];
-    const numTeams = shuffledIDs.length;
-
-    if (numTeams % 2 !== 0) {
-        shuffledIDs.push(null); // Add a bye/null team if the number of teams is odd
+    // Ensure even number of teams by adding a bye team if necessary
+    const hasByeTeam = numTeams % 2 !== 0;
+    if (hasByeTeam) {
+        departmentIDs.push(null);
     }
 
-    const rounds = numTeams - 1;
-    const halfTeams = numTeams / 2;
-
-    for (let round = 0; round < rounds; round++) {
+    // Generate matchups
+    const matchups = [];
+    for (let i = 0; i < numTeams - 1; i++) {
         const roundMatchups = [];
-        for (let team = 0; team < halfTeams; team++) {
-            const team1 = shuffledIDs[team];
-            const team2Index = (round + team) % (numTeams - 1); // Offset index by round to avoid self-matchup
-            const team2 = shuffledIDs[team2Index === team ? numTeams - 1 : team2Index]; // If team2Index equals team, select the last team
-            if (team1 !== null && team2 !== null && team1 !== team2) { // Ensure team1 and team2 are not null and not the same team
+        for (let j = 0; j < numTeams / 2; j++) {
+            const team1 = departmentIDs[j];
+            const team2 = departmentIDs[numTeams - 1 - j];
+            if (team1 && team2 && team1 !== team2) {
                 roundMatchups.push([team1, team2]);
             }
         }
         matchups.push(roundMatchups);
-        shuffledIDs.splice(1, 0, shuffledIDs.pop()); // Rotate the teams for the next round
+
+        // Rotate teams for the next round
+        const firstTeam = departmentIDs.shift();
+        const lastTeam = departmentIDs.pop();
+        departmentIDs.splice(1, 0, lastTeam, firstTeam);
+    }
+
+    // If there was a bye team, remove it from the matchups
+    if (hasByeTeam) {
+        for (const round of matchups) {
+            for (let i = 0; i < round.length; i++) {
+                if (round[i].includes(null)) {
+                    round.splice(i, 1);
+                    break;
+                }
+            }
+        }
     }
 
     return matchups;
 }
+
 
 
 MatchupController.post('/generate_matchups', authenticateToken, async (req, res) => {

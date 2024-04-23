@@ -88,13 +88,21 @@ MatchupController.post('/generate_matchups', authenticateToken, async (req, res)
 // Fetch all match-ups
 MatchupController.get('/matchups', authenticateToken, async (req, res) => {
     try {
-        const matchups = await db.promise().query('SELECT * FROM Matchups');
+        const matchups = await db.promise().query(`
+            SELECT m.MatchupID, e.EventName, t1.TeamCode AS Team1Code, t2.TeamCode AS Team2Code, m.NumGames, m.WinnerTeamID
+            FROM Matchups m
+            INNER JOIN Events e ON m.EventID = e.EventID
+            INNER JOIN Teams t1 ON m.Team1ID = t1.TeamID
+            INNER JOIN Teams t2 ON m.Team2ID = t2.TeamID
+        `);
+
         res.status(200).json(matchups[0]);
     } catch (error) {
         console.error('Error fetching match-ups:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 
 // Fetch a match-up by its ID
 MatchupController.get('/matchup/:id', authenticateToken, async (req, res) => {

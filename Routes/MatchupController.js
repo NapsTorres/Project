@@ -30,8 +30,9 @@ function generateRoundRobin(teamIDs) {
         const roundMatchups = [];
         for (let team = 0; team < halfTeams; team++) {
             const team1 = shuffledIDs[team];
-            const team2 = shuffledIDs[numTeams - team - 1];
-            if (team1 !== null && team2 !== null) {
+            const team2Index = (round + team) % (numTeams - 1); // Offset index by round to avoid self-matchup
+            const team2 = shuffledIDs[team2Index === team ? numTeams - 1 : team2Index]; // If team2Index equals team, select the last team
+            if (team1 !== null && team2 !== null && team1 !== team2) { // Ensure team1 and team2 are not null and not the same team
                 roundMatchups.push([team1, team2]);
             }
         }
@@ -41,6 +42,7 @@ function generateRoundRobin(teamIDs) {
 
     return matchups;
 }
+
 
 MatchupController.post('/generate_matchups', authenticateToken, async (req, res) => {
     try {

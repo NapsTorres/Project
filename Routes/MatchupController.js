@@ -6,7 +6,6 @@ const { authenticateToken } = require('../auth');
 const shuffle = require('lodash/shuffle'); // Import the shuffle function from lodash
 
 const MatchupController = express.Router();
-
 function generateRoundRobin(teamIDs) {
     // Shuffle the team IDs to ensure different matchups each time
     const shuffledIDs = shuffle(teamIDs);
@@ -23,7 +22,6 @@ function generateRoundRobin(teamIDs) {
 
     for (let round = 0; round < rounds; round++) {
         const roundMatchups = [];
-        const restTeam = shuffledIDs[0]; // Store the first team to give it a rest
         for (let team = 0; team < halfTeams; team++) {
             const team1 = shuffledIDs[team];
             const team2Index = (round + team) % (numTeams - 1); // Offset index by round to avoid self-matchup
@@ -33,25 +31,11 @@ function generateRoundRobin(teamIDs) {
             }
         }
         matchups.push(roundMatchups);
-        // Rotate the teams for the next round
-        shuffledIDs.splice(1, 0, shuffledIDs.pop());
-        // Put the restTeam back to the end to ensure it rests before the next match
-        shuffledIDs.push(shuffledIDs.shift());
+        shuffledIDs.splice(1, 0, shuffledIDs.pop()); // Rotate the teams for the next round
     }
 
     return matchups;
-}
-
-// Function to shuffle an array (Fisher-Yates shuffle)
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
-
+} 
 
 MatchupController.post('/generate_matchups', authenticateToken, async (req, res) => {
     try {
@@ -71,7 +55,7 @@ MatchupController.post('/generate_matchups', authenticateToken, async (req, res)
         const teamIDs = teams.map(team => team.TeamID); // Use team IDs directly
         const roundRobinMatchups = generateRoundRobin(teamIDs);
 
-        const insertMatchupsQuery = 'INSERT INTO Matchups (EventID, Team1ID, Team2ID, NumGames, WinnerTeamID, RestTime) VALUES (?, ?, ?, ?, ?, ?)';
+        const insertMatchupsQuery = 'INSERT INTO Matchups (EventID, Team1ID, Team2ID, NumGames, WinnerTeamID) VALUES (?, ?, ?, ?, ?)';
         const insertLeaderboardQuery = 'INSERT INTO EventLeaderboards (EventID, TeamID, Ranking, Points) VALUES (?, ?, ?, ?)';
 
         // Insert teams into leaderboard with default points and rankings
@@ -80,13 +64,11 @@ MatchupController.post('/generate_matchups', authenticateToken, async (req, res)
         }
 
         // Generate match-ups and insert into database
-        for (let round = 0; round < roundRobinMatchups.length; round++) {
-            const roundMatchups = roundRobinMatchups[round];
-            const restTime = round + 1; // Rest time increases with each round
+        for (const roundMatchups of roundRobinMatchups) {
             for (const [team1, team2] of roundMatchups) {
                 const matchupExists = await isMatchupExists(EventID, team1, team2);
                 if (!matchupExists) {
-                    await db.promise().execute(insertMatchupsQuery, [EventID, team1, team2, NumGames, null, restTime]);
+                    await db.promise().execute(insertMatchupsQuery, [EventID, team1, team2, NumGames, null]);
                 }
             }
         }
@@ -96,7 +78,7 @@ MatchupController.post('/generate_matchups', authenticateToken, async (req, res)
         console.error('Error generating match-ups and rankings', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
-});
+}); 
 
 
 // Fetch all match-ups

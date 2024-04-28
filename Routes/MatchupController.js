@@ -20,6 +20,16 @@ function generateRoundRobin(teamIDs) {
     return matchups;
 }
 
+async function isMatchupExists(EventID, team1, team2) {
+    try {
+        const [existingMatchup] = await db.promise().query('SELECT * FROM Matchups WHERE EventID = ? AND ((Team1ID = ? AND Team2ID = ?) OR (Team1ID = ? AND Team2ID = ?))', [EventID, team1, team2, team2, team1]);
+        return existingMatchup.length > 0;
+    } catch (error) {
+        console.error('Error checking if matchup exists:', error);
+        throw error;
+    }
+}
+
 MatchupController.post('/generate_matchups', authenticateToken, async (req, res) => {
     try {
         const { EventID, NumGames } = req.body;

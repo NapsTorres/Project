@@ -11,14 +11,38 @@ function generateRoundRobin(teamIDs) {
     const matchups = [];
     const numTeams = teamIDs.length;
 
+    // Create a list to track which teams need to rest
+    const teamsResting = new Set();
+
     for (let i = 0; i < numTeams - 1; i++) {
-        for (let j = i + 1; j < numTeams; j++) {
-            matchups.push([teamIDs[i], teamIDs[j]]);
+        const roundMatchups = [];
+
+        // Create matchups for the current round
+        for (let j = 0; j < numTeams / 2; j++) {
+            const team1Index = (i + j) % numTeams;
+            const team2Index = (i + numTeams - j) % numTeams;
+            const team1 = teamIDs[team1Index];
+            const team2 = teamIDs[team2Index];
+
+            // Check if both teams need to rest
+            if (!teamsResting.has(team1) && !teamsResting.has(team2)) {
+                roundMatchups.push([team1, team2]);
+            }
         }
+
+        // Add matchups of the current round to the matchups list
+        matchups.push(roundMatchups);
+
+        // Add the teams from the current round to the set of teams resting
+        roundMatchups.forEach(matchup => {
+            teamsResting.add(matchup[0]);
+            teamsResting.add(matchup[1]);
+        });
     }
 
     return matchups;
 }
+
 
 async function isMatchupExists(EventID, team1, team2) {
     try {

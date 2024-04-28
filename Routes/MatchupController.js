@@ -11,14 +11,20 @@ function generateRoundRobin(teamIDs) {
     const matchups = [];
     const numTeams = teamIDs.length;
 
+    // Shift the team IDs array to create a rotating schedule
+    const rotatedTeamIDs = [...teamIDs.slice(1), teamIDs[0]];
+
     for (let i = 0; i < numTeams - 1; i++) {
-        for (let j = i + 1; j < numTeams; j++) {
-            matchups.push([teamIDs[i], teamIDs[j]]);
+        for (let j = 0; j < numTeams; j++) {
+            matchups.push([teamIDs[j], rotatedTeamIDs[j]]);
         }
+        // Rotate the team IDs array
+        rotatedTeamIDs.push(rotatedTeamIDs.shift());
     }
 
     return matchups;
 }
+
 
 async function isMatchupExists(EventID, team1, team2) {
     try {

@@ -7,7 +7,6 @@ const shuffle = require('lodash/shuffle'); // Import the shuffle function from l
 
 const MatchupController = express.Router();
 
-User
 function generateRoundRobin(teamIDs) {
     const matchups = [];
     const numTeams = teamIDs.length;

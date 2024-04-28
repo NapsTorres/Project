@@ -18,9 +18,7 @@ function generateRoundRobin(teamIDs) {
     }
 
     return matchups;
-
-
-
+}
 
 async function isMatchupExists(EventID, team1, team2) {
     try {

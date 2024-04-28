@@ -6,14 +6,6 @@ const { authenticateToken } = require('../auth');
 const shuffle = require('lodash/shuffle'); // Import the shuffle function from lodash
 
 const MatchupController = express.Router();
-function shuffle(array) {
-    // Function to shuffle an array (you may already have this implemented)
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
 
 function generateRoundRobin(teamIDs) {
     const matchups = [];
@@ -69,8 +61,6 @@ MatchupController.post('/generate_matchups', authenticateToken, async (req, res)
     }
 });
 
-
-
 // Fetch all match-ups
 MatchupController.get('/matchups', authenticateToken, async (req, res) => {
     try {
@@ -88,7 +78,6 @@ MatchupController.get('/matchups', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
 
 // Fetch a match-up by its ID
 MatchupController.get('/matchup/:id', authenticateToken, async (req, res) => {

@@ -21,19 +21,6 @@ function generateRoundRobin(teamIDs) {
     return matchups;
 }
 
-        // Add matchups of the current round to the matchups list
-        matchups.push(roundMatchups);
-
-        // Add the teams from the current round to the set of teams resting
-        roundMatchups.forEach(matchup => {
-            teamsResting.add(matchup[0]);
-            teamsResting.add(matchup[1]);
-        });
-    }
-
-    return matchups;
-}
-
 
 async function isMatchupExists(EventID, team1, team2) {
     try {

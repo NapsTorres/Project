@@ -198,26 +198,6 @@ GameController.post('/create_game', authenticateToken, async  (req, res) => {
     }
 });
 
-GameController.get('/games', authenticateToken, async  (req, res) => {
-    try {
-        const [games] = await db.promise().query('SELECT * FROM Games');
-
-        const formattedGames = games.map(game => ({
-            ...game,
-            GameDate: moment(game.GameDate).format('YYYY-MM-DD'),
-            StartTime: moment(game.StartTime, 'HH:mm:ss').format('hh:mm A'),
-            EndTime: moment(game.EndTime, 'HH:mm:ss').format('hh:mm A'),
-            Status: getStatusName(game.Status),
-            Team1Outcome: getOutcomeName(game.Team1Outcome),
-            Team2Outcome: getOutcomeName(game.Team2Outcome)
-        }));
-
-        res.status(200).json(formattedGames);
-    } catch (error) {
-        console.error('Error fetching games:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-});
 
 GameController.get('/games', authenticateToken, async (req, res) => {
     try {

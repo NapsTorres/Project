@@ -219,27 +219,31 @@ GameController.get('/games', authenticateToken, async  (req, res) => {
     }
 });
 
-GameController.get('/game/:id', authenticateToken, async  (req, res) => {
+GameController.get('/games', authenticateToken, async (req, res) => {
     try {
-        const gameId = req.params.id;
-        const [game] = await db.promise().query('SELECT * FROM Games WHERE GameID = ?', [gameId]);
-        if (game.length === 0) {
-            return res.status(404).json({ message: 'Game not found' });
-        }
-        
-        const formattedGame = {
-            ...game[0],
-            GameDate: moment(game[0].GameDate).format('YYYY-MM-DD'),
-            StartTime: moment(game[0].StartTime, 'HH:mm:ss').format('hh:mm A'),
-            EndTime: moment(game[0].EndTime, 'HH:mm:ss').format('hh:mm A'),
-            Status: getStatusName(game[0].Status),
-            Team1Outcome: getOutcomeName(game[0].Team1Outcome),
-            Team2Outcome: getOutcomeName(game[0].Team2Outcome)
-        };
+        const gamesQuery = `
+            SELECT g.*, e.EventName, t1.TeamName AS Team1Name, t2.TeamName AS Team2Name
+            FROM Games g
+            INNER JOIN Matchups m ON g.MatchupID = m.MatchupID
+            INNER JOIN Events e ON m.EventID = e.EventID
+            INNER JOIN Teams t1 ON m.Team1ID = t1.TeamID
+            INNER JOIN Teams t2 ON m.Team2ID = t2.TeamID
+        `;
+        const [games] = await db.promise().query(gamesQuery);
 
-        res.status(200).json(formattedGame);
+        const formattedGames = games.map(game => ({
+            ...game,
+            GameDate: moment(game.GameDate).format('YYYY-MM-DD'),
+            StartTime: moment(game.StartTime, 'HH:mm:ss').format('hh:mm A'),
+            EndTime: moment(game.EndTime, 'HH:mm:ss').format('hh:mm A'),
+            Status: getStatusName(game.Status),
+            Team1Outcome: getOutcomeName(game.Team1Outcome),
+            Team2Outcome: getOutcomeName(game.Team2Outcome)
+        }));
+
+        res.status(200).json(formattedGames);
     } catch (error) {
-        console.error('Error fetching game by ID:', error);
+        console.error('Error fetching games:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });

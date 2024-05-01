@@ -202,7 +202,7 @@ GameController.post('/create_game', authenticateToken, async  (req, res) => {
 GameController.get('/games', authenticateToken, async (req, res) => {
     try {
         const gamesQuery = `
-            SELECT g.*, e.EventName, t1.TeamName AS Team1Name, t2.TeamName AS Team2Name
+            SELECT g.*, e.EventName, t1.TeamCode AS Team1Code, t2.TeamCode AS Team2Code
             FROM Games g
             INNER JOIN Matchups m ON g.MatchupID = m.MatchupID
             INNER JOIN Events e ON m.EventID = e.EventID
@@ -227,6 +227,7 @@ GameController.get('/games', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 
 GameController.get('/games/event/:eventId', authenticateToken, async  (req, res) => {
     try {

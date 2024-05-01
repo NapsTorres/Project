@@ -359,4 +359,26 @@ GameController.put('/game/:id', authenticateToken, async  (req, res) => {
     }
 });
 
+// Route to delete a game by its ID
+GameController.delete('/game/:id', authenticateToken, async (req, res) => {
+    try {
+        const gameId = req.params.id;
+
+        // Check if the game exists
+        const [existingGame] = await db.promise().query('SELECT * FROM Games WHERE GameID = ?', [gameId]);
+        if (existingGame.length === 0) {
+            return res.status(404).json({ message: 'Game not found' });
+        }
+
+        // Delete the game from the database
+        await db.promise().execute('DELETE FROM Games WHERE GameID = ?', [gameId]);
+
+        res.status(200).json({ message: 'Game deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting game:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+
 module.exports = { GameController };

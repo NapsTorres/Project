@@ -7,13 +7,14 @@ const { authenticateToken } = require('../auth');
 const EventLeaderboardController = express.Router();
 
 // Get all event leaderboards
-EventLeaderboardController.get('/eventleaderboards', authenticateToken, async  (req, res) => {
+EventLeaderboardController.get('/eventleaderboards', authenticateToken, async (req, res) => {
     try {
-        // Query to fetch all event leaderboards with team codes
+        // Query to fetch all event leaderboards with event names and team codes
         const query = `
-            SELECT l.*, t.TeamCode 
+            SELECT l.*, e.EventName, t.TeamCode 
             FROM EventLeaderboards l
             INNER JOIN Teams t ON l.TeamID = t.TeamID
+            INNER JOIN Events e ON l.EventID = e.EventID
         `;
         const [leaderboards] = await db.promise().query(query);
 
@@ -24,6 +25,7 @@ EventLeaderboardController.get('/eventleaderboards', authenticateToken, async  (
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 
 // Get event leaderboard by event ID
 EventLeaderboardController.get('/eventleaderboard/:eventId', authenticateToken, async  (req, res) => {
